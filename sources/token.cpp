@@ -1,9 +1,4 @@
-#include <stdio.h>
-#include <string.h>
-#include <assert.h>
 #include <iostream>
-#include <fstream>
-#include <vector>
 #include "token.hpp"
 
 using namespace std;
@@ -16,36 +11,36 @@ Token::Token()
 Token::Token(string value)
 {
     this->value = value;
-    this->type = TypeDetection(this->value);
+    this->type = typeDetection(this->value);
 }
 
-string Token::TypeDetection(string s)
+string Token::typeDetection(string value)
 {
-	if (s == "main" || s == "if" || s == "then" || s == "else" || s == "while" || s == "do" || s == "begin" || s == "end" || s == "var" || s == "integer" || s == "real" || s == "for" || s == "function" || s == "array" || s == "procedure" || s == "result" || s == "program")
+	if (value == "main" || value == "if" || value == "then" || value == "else" || value == "while" || value == "do" || value == "begin" || value == "end" || value == "var" || value == "integer" || value == "real" || value == "for" || value == "function" || value == "array" || value == "procedure" || value == "result" || value == "program")
 	{
 		return "KEYWORD";
 	}
-	else if (s == "=" || s == "<>" || s == "<=" || s == ">=" || s == ">" || s == "<")
+	else if (value == "=" || value == "<>" || value == "<=" || value == ">=" || value == ">" || value == "<")
 	{
 		return "RELOP";
 	}
-	else if (s == "+" || s == "-" || s == "or")
+	else if (value == "+" || value == "-" || value == "or")
 	{
 		return "ADDOP";
 	}
-	else if (s == "*" || s == "/" || s == "div" || s == "mod" || s == "and")
+	else if (value == "*" || value == "/" || value == "div" || value == "mod" || value == "and")
 	{
 		return "MULOP";
 	}
-	else if (s == ":=")
+	else if (value == ":=")
 	{
 		return "ASSIGNOP";
 	}
-	else if (s == "(" || s == ")" || s == "," || s == ":" || s == ";")
+	else if (value == "(" || value == ")" || value == "," || value == ":" || value == ";")
 	{
 		return "SPECIALSYMBOL";
 	}
-	else if (s[0] <= '9' && s[0] >= '0')
+	else if (value[0] <= '9' && value[0] >= '0')
 	{
 		return "CONSTANT";
 	}

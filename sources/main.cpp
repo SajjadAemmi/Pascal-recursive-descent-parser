@@ -3,31 +3,11 @@
 *  Copyright (C) 2017 SajjadAemmi ( Telegram: @Sajjad_Aemmi )
 *
 ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
-#include <stdio.h>
-#include <string.h>
-#include <assert.h>
 #include <iostream>
-#include <fstream>
-#include <vector>
-#include <algorithm>
-#include <stack>
-#include <set>
-#include <list>
-#include <string>
-#include <sstream>
-#include <map>
 #include "lex_analyser.hpp"
 #include "parser.hpp"
 
 using namespace std;
-
-#define EPSILON			-1
-#define CLOSURE			'*'
-#define OPEN_PAREN		'('
-#define CLOSE_PAREN		')'
-#define OR				'+'
-#define CONCAT			'.'
-
 
 int main()
 {
@@ -35,25 +15,25 @@ int main()
 	Parser PA;
 
 	cout << "LexAnalyser" << endl;
-	LA.InputFileInfixRE();
-	LA.PreProcessInfixRE();
-	LA.ConvertInfixREToPostfixRE();
-	LA.OutputFilePostfixRE();
-	LA.ConvertPostfixREToNFA();
-	LA.OutputFileNFATable();
-	LA.ConvertNFAtoDFA();
-	LA.InputFileProgram();
-	LA.Scanner();
-	LA.OutputFileTokens();
+	LA.readInfixREFromFile();
+	LA.preProcessInfixRE();
+	LA.convertInfixREToPostfixRE();
+	LA.writePostfixREToFile();
+	LA.convertPostfixREToNFA();
+	LA.writeNFATableToFile();
+	LA.convertNFAToDFA();
+	LA.readProgramFromFile();
+	LA.scanner();
+	LA.writeTokensToFile();
 
 	cout << "Parser" << endl;
-	PA.Tokens = LA.Tokens;
-	PA.CreateTree();
+	PA.tokens = LA.tokens;
+	PA.createTree();
 
-	if (PA.GoodProgram == true)
+	if (PA.good_program == true)
 	{
-		PA.OutputFileHTMLTree();
-		PA.PrintTree(PA.root);
+		PA.writeHtmlTreeToFile();
+		PA.printTree(PA.root);
 	}
 
 	return 0;

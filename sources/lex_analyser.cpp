@@ -1,6 +1,3 @@
-#include <stdio.h>
-#include <string.h>
-#include <assert.h>
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -9,7 +6,6 @@
 #include <set>
 #include <list>
 #include <string>
-#include <sstream>
 #include <map>
 #include "token.hpp"
 #include "state.hpp"
@@ -32,143 +28,143 @@ typedef set<State*>::iterator StateIterator;
 Table NFATable;
 Table DFATable;
 
-bool LexAnalyser::Match(string S)
+bool LexAnalyser::match(string S)
 {
 	State* pState = DFATable[0];
 	vector<State*>  Transition;
 	for (int i = 0; i < S.size(); i++)
 	{
 		char CurrChar = S[i];
-		pState->GetTransition(CurrChar, Transition);
+		pState->getTransition(CurrChar, Transition);
 		if (Transition.empty())
 			return false;
 		pState = Transition[0];
 	}
-	if (pState->Accept)
+	if (pState->accept)
 		return true;
 
 	return false;
 }
 
-bool LexAnalyser::ConvertPostfixREToNFA()
+bool LexAnalyser::convertPostfixREToNFA()
 {
 	//Thompson NFA
 
-	for (int i = 0; i < (int)PostfixRE.size(); i++)
+	for (int i = 0; i < (int)postfix_re.size(); i++)
 	{
-		char Ch = PostfixRE[i];
+		char Ch = postfix_re[i];
 
-		if (!IsOperator(Ch))
+		if (!isOperator(Ch))
 		{
 			if (Ch == '~')
 			{
 				i++;
-				Ch = PostfixRE[i];
+				Ch = postfix_re[i];
 			}
-			CreateOneCharNFA(Ch);
+			createOneCharNFA(Ch);
 		}
-		else if (IsOperator(Ch))
+		else if (isOperator(Ch))
 		{
 			if (Ch == '.')
-				Concat();
+				concat();
 			else if (Ch == '*')
-				Closure();
+				closure();
 			else if (Ch == '+')
-				Or();
+				or();
 		}
 	}
-	PopTable(NFATable);
-	NFATable[NFATable.size() - 1]->Accept = true;
+	popTable(NFATable);
+	NFATable[NFATable.size() - 1]->accept = true;
 	return true;
 }
 
-void LexAnalyser::CreateOneCharNFA(char ch)
+void LexAnalyser::createOneCharNFA(char ch)
 {
-	State* s0 = new State(NextStateID++);
-	State* s1 = new State(NextStateID++);
+	State* s0 = new State(next_state_id++);
+	State* s1 = new State(next_state_id++);
 
-	s0->AddTransition(ch, s1);
+	s0->addTransition(ch, s1);
 
 	Table NewSubTable;
 	NewSubTable.push_back(s0);
 	NewSubTable.push_back(s1);
-	ThompsonStack.push(NewSubTable);
+	thompson_stack.push(NewSubTable);
 
-	InputSet.insert(ch);
+	input_set.insert(ch);
 }
 
-bool LexAnalyser::PopTable(Table& NFATable)
+bool LexAnalyser::popTable(Table& NFATable)
 {
-	if (ThompsonStack.size() > 0)
+	if (thompson_stack.size() > 0)
 	{
-		NFATable = ThompsonStack.top();
-		ThompsonStack.pop();
+		NFATable = thompson_stack.top();
+		thompson_stack.pop();
 		return true;
 	}
 	return false;
 }
 
-bool LexAnalyser::Concat()
+bool LexAnalyser::concat()
 {
 	Table LeftTable, RightTable;
 
-	if (!PopTable(RightTable) || !PopTable(LeftTable))
+	if (!popTable(RightTable) || !popTable(LeftTable))
 		return false;
 
-	(*(LeftTable.rbegin()))->AddTransition(EPSILON, *(RightTable.begin()));
+	(*(LeftTable.rbegin()))->addTransition(EPSILON, *(RightTable.begin()));
 	LeftTable.insert(LeftTable.end(), RightTable.begin(), RightTable.end());
-	ThompsonStack.push(LeftTable);
+	thompson_stack.push(LeftTable);
 
 	return true;
 }
 
-bool LexAnalyser::Closure()
+bool LexAnalyser::closure()
 {
 	Table PrevTable;
 
-	if (!PopTable(PrevTable))
+	if (!popTable(PrevTable))
 		return false;
 
-	State* LeftTable = new State(NextStateID++);
-	State* RightTable = new State(NextStateID++);
+	State* LeftTable = new State(next_state_id++);
+	State* RightTable = new State(next_state_id++);
 
-	LeftTable->AddTransition(EPSILON, RightTable);
-	LeftTable->AddTransition(EPSILON, *(PrevTable.begin()));
-	(*(PrevTable.rbegin()))->AddTransition(EPSILON, RightTable);
-	(*(PrevTable.rbegin()))->AddTransition(EPSILON, *(PrevTable.begin()));
+	LeftTable->addTransition(EPSILON, RightTable);
+	LeftTable->addTransition(EPSILON, *(PrevTable.begin()));
+	(*(PrevTable.rbegin()))->addTransition(EPSILON, RightTable);
+	(*(PrevTable.rbegin()))->addTransition(EPSILON, *(PrevTable.begin()));
 
 	PrevTable.insert(PrevTable.begin(), LeftTable);
 	PrevTable.push_back(RightTable);
 
-	ThompsonStack.push(PrevTable);
+	thompson_stack.push(PrevTable);
 
 	return true;
 }
 
-bool LexAnalyser::Or()
+bool LexAnalyser::or()
 {
 	Table  UpperTable, LowerTable;
 
-	if (!PopTable(LowerTable) || !PopTable(UpperTable))
+	if (!popTable(LowerTable) || !popTable(UpperTable))
 		return false;
 
-	State* LeftTable = new State(NextStateID++);
-	State* RightTable = new State(NextStateID++);
+	State* LeftTable = new State(next_state_id++);
+	State* RightTable = new State(next_state_id++);
 
-	LeftTable->AddTransition(EPSILON, *(UpperTable.begin()));
-	LeftTable->AddTransition(EPSILON, *(LowerTable.begin()));
-	(*(UpperTable.rbegin()))->AddTransition(EPSILON, RightTable);
-	(*(LowerTable.rbegin()))->AddTransition(EPSILON, RightTable);
+	LeftTable->addTransition(EPSILON, *(UpperTable.begin()));
+	LeftTable->addTransition(EPSILON, *(LowerTable.begin()));
+	(*(UpperTable.rbegin()))->addTransition(EPSILON, RightTable);
+	(*(LowerTable.rbegin()))->addTransition(EPSILON, RightTable);
 
 	LowerTable.push_back(RightTable);
 	UpperTable.insert(UpperTable.begin(), LeftTable);
 	UpperTable.insert(UpperTable.end(), LowerTable.begin(), LowerTable.end());
 
-	ThompsonStack.push(UpperTable);
+	thompson_stack.push(UpperTable);
 	return true;
 }
 
-bool LexAnalyser::IsOperator(char Ch)
+bool LexAnalyser::isOperator(char Ch)
 {
 	if (Ch == CLOSURE || Ch == OR || Ch == OPEN_PAREN || Ch == CLOSE_PAREN || Ch == CONCAT)
 	{
@@ -180,7 +176,7 @@ bool LexAnalyser::IsOperator(char Ch)
 	}
 }
 
-void LexAnalyser::EpsilonClosure(set<State*> startSet, set<State*>& result)
+void LexAnalyser::epsilonClosure(set<State*> startSet, set<State*>& result)
 {
 	stack<State*> UnVisitedStates;
 	result = startSet;
@@ -196,7 +192,7 @@ void LexAnalyser::EpsilonClosure(set<State*> startSet, set<State*>& result)
 		UnVisitedStates.pop();
 
 		Table epsilonStates;
-		curState->GetTransition(EPSILON, epsilonStates);
+		curState->getTransition(EPSILON, epsilonStates);
 
 		TableIterator epsilonItr;
 
@@ -211,14 +207,14 @@ void LexAnalyser::EpsilonClosure(set<State*> startSet, set<State*>& result)
 	}
 }
 
-void LexAnalyser::Move(char chInput, set<State*> NFAState, set<State*>& Result)
+void LexAnalyser::move(char chInput, set<State*> NFAState, set<State*>& Result)
 {
 	Result.clear();
 	StateIterator iter;
 	for (iter = NFAState.begin(); iter != NFAState.end(); ++iter)
 	{
 		Table States;
-		(*iter)->GetTransition(chInput, States);
+		(*iter)->getTransition(chInput, States);
 		for (int index = 0; index < (int)States.size(); ++index)
 		{
 			Result.insert(States[index]);
@@ -226,16 +222,16 @@ void LexAnalyser::Move(char chInput, set<State*> NFAState, set<State*>& Result)
 	}
 }
 
-void LexAnalyser::ConvertNFAtoDFA()
+void LexAnalyser::convertNFAToDFA()
 {
 	set<State*> NFAStartStateSet;
 	NFAStartStateSet.insert(NFATable[0]);
 
 	set<State*> DFAStartStateSet;
-	EpsilonClosure(NFAStartStateSet, DFAStartStateSet);
+	epsilonClosure(NFAStartStateSet, DFAStartStateSet);
 
-	NextStateID = 0;
-	State* DFAStartState = new State(DFAStartStateSet, NextStateID++);
+	next_state_id = 0;
+	State* DFAStartState = new State(DFAStartStateSet, next_state_id++);
 
 	DFATable.push_back(DFAStartState);
 
@@ -247,53 +243,53 @@ void LexAnalyser::ConvertNFAtoDFA()
 		UnVisitedStates.pop_back();
 
 		std::set<char>::iterator iter;
-		for (iter = InputSet.begin(); iter != InputSet.end(); ++iter) {
-			std::set<State*> MoveRes, EpsilonClosureRes;
+		for (iter = input_set.begin(); iter != input_set.end(); ++iter) {
+			std::set<State*> moveRes, epsilonClosureRes;
 
-			Move(*iter, CurDFAState->GetNFAState(), MoveRes);
-			EpsilonClosure(MoveRes, EpsilonClosureRes);
+			move(*iter, CurDFAState->getNFAState(), moveRes);
+			epsilonClosure(moveRes, epsilonClosureRes);
 
-			StateIterator MoveResItr;
-			StateIterator EpsilonClosureResItr;
+			StateIterator moveResItr;
+			StateIterator epsilonClosureResItr;
 
 			bool bFound = false;
 			State* s = NULL;
 			for (int i = 0; i < (int)DFATable.size(); ++i) {
 				s = DFATable[i];
-				if (s->GetNFAState() == EpsilonClosureRes) {
+				if (s->getNFAState() == epsilonClosureRes) {
 					bFound = true;
 					break;
 				}
 			}
 			if (!bFound) {
-				State* U = new State(EpsilonClosureRes, NextStateID++);
+				State* U = new State(epsilonClosureRes, next_state_id++);
 				UnVisitedStates.push_back(U);
 				DFATable.push_back(U);
-				CurDFAState->AddTransition(*iter, U);
+				CurDFAState->addTransition(*iter, U);
 			}
 			else {
-				CurDFAState->AddTransition(*iter, s);
+				CurDFAState->addTransition(*iter, s);
 			}
 		}
 	}
 }
 
-void LexAnalyser::ConvertInfixREToPostfixRE()
+void LexAnalyser::convertInfixREToPostfixRE()
 {
 	stack<char> OperatorStack;
 	char TopSymbol, Symbol;
 	int k;
 
-	for (k = 0; k < InfixRE.size(); k++)
+	for (k = 0; k < infix_re.size(); k++)
 	{
-		Symbol = InfixRE[k];
+		Symbol = infix_re[k];
 
 		if (Symbol == '~')
 		{
-			PostfixRE = PostfixRE + Symbol;
+			postfix_re = postfix_re + Symbol;
 			k++;
-			Symbol = InfixRE[k];
-			PostfixRE = PostfixRE + Symbol;
+			Symbol = infix_re[k];
+			postfix_re = postfix_re + Symbol;
 		}
 		else if (Symbol == '(')
 		{
@@ -305,50 +301,50 @@ void LexAnalyser::ConvertInfixREToPostfixRE()
 			{
 				TopSymbol = OperatorStack.top();
 				OperatorStack.pop();
-				PostfixRE = PostfixRE + TopSymbol;
+				postfix_re = postfix_re + TopSymbol;
 			}
 			OperatorStack.pop();
 		}
-		else if (IsOperator(Symbol))
+		else if (isOperator(Symbol))
 		{
-			if (OperatorStack.empty() || (!(OperatorStack.empty()) && TakesPrecedence(OperatorStack.top(), Symbol)))
+			if (OperatorStack.empty() || (!(OperatorStack.empty()) && takesPrecedence(OperatorStack.top(), Symbol)))
 			{
 				OperatorStack.push(Symbol);
 			}
 			else
 			{
-				while (!(OperatorStack.empty()) && !TakesPrecedence(OperatorStack.top(), Symbol))
+				while (!(OperatorStack.empty()) && !takesPrecedence(OperatorStack.top(), Symbol))
 				{
 					TopSymbol = OperatorStack.top();
 					OperatorStack.pop();
-					PostfixRE = PostfixRE + TopSymbol;
+					postfix_re = postfix_re + TopSymbol;
 				}
 				OperatorStack.push(Symbol);
 			}
 		}
 		else
 		{
-			PostfixRE = PostfixRE + Symbol;
+			postfix_re = postfix_re + Symbol;
 		}
 	}
 	while (!OperatorStack.empty())
 	{
 		TopSymbol = OperatorStack.top();
 		OperatorStack.pop();
-		PostfixRE = PostfixRE + TopSymbol;
+		postfix_re = postfix_re + TopSymbol;
 	}
-	PostfixRE += "\0";
+	postfix_re += "\0";
 }
 
-void LexAnalyser::OutputFilePostfixRE()
+void LexAnalyser::writePostfixREToFile()
 {
 	fstream f;
 	f.open("IO/output/postfix_regular_expression.txt", ios::out);
-	f << PostfixRE;
+	f << postfix_re;
 	f.close();
 }
 
-string LexAnalyser::RemoveBracket(string s)
+string LexAnalyser::removeBracket(string s)
 {
 	string::size_type startPos, endPos, separatorPos;
 	string ReplacedStr;
@@ -394,7 +390,7 @@ string LexAnalyser::RemoveBracket(string s)
 	return ReplacedStr;
 }
 
-void LexAnalyser::InputFileInfixRE()
+void LexAnalyser::readInfixREFromFile()
 {
 	fstream file;
 	string temp;
@@ -409,26 +405,26 @@ void LexAnalyser::InputFileInfixRE()
 	while (!file.eof())
 	{
 		file >> temp;
-		this->RegularExpressions.push_back(temp);
+		this->regular_expressions.push_back(temp);
 	}
 }
 
-void LexAnalyser::PreProcessInfixRE()
+void LexAnalyser::preProcessInfixRE()
 {
 	int i;
-	for (i = 0; i < RegularExpressions.size() - 1; i++)
+	for (i = 0; i < regular_expressions.size() - 1; i++)
 	{
-		InfixRE += "(" + RegularExpressions[i] + ")" + "+";
+		infix_re += "(" + regular_expressions[i] + ")" + "+";
 	}
-	InfixRE += "(" + RegularExpressions[i] + ")";
+	infix_re += "(" + regular_expressions[i] + ")";
 
-	while (InfixRE.find("[") != string::npos)
+	while (infix_re.find("[") != string::npos)
 	{
-		InfixRE = RemoveBracket(InfixRE);
+		infix_re = removeBracket(infix_re);
 	}
 }
 
-void LexAnalyser::OutputFileNFATable()
+void LexAnalyser::writeNFATableToFile()
 {
 	fstream f;
 
@@ -443,7 +439,7 @@ void LexAnalyser::OutputFileNFATable()
 	for (int i = 0; i < (int)NFATable.size(); ++i)
 	{
 		State* pState = NFATable[i];
-		if (pState->Accept)
+		if (pState->accept)
 		{
 			f << pState->getStringID() << "\n";
 		}
@@ -452,15 +448,15 @@ void LexAnalyser::OutputFileNFATable()
 	{
 		State* pState = NFATable[i];
 		vector<State*> State;
-		pState->GetTransition(EPSILON, State);
+		pState->getTransition(EPSILON, State);
 		for (int j = 0; j < (int)State.size(); ++j)
 		{
 			f << pState->getStringID() << "  " << State[j]->getStringID() << "  epsilon\n";
 		}
 		set<char>::iterator iter;
-		for (iter = InputSet.begin(); iter != InputSet.end(); ++iter)
+		for (iter = input_set.begin(); iter != input_set.end(); ++iter)
 		{
-			pState->GetTransition(*iter, State);
+			pState->getTransition(*iter, State);
 			for (int j = 0; j < (int)State.size(); ++j)
 			{
 				f << pState->getStringID() + "  " << State[j]->getStringID();
@@ -473,7 +469,7 @@ void LexAnalyser::OutputFileNFATable()
 	f.close();
 }
 
-void LexAnalyser::InputFileProgram()
+void LexAnalyser::readProgramFromFile()
 {
 	fstream file;
 	string temp;
@@ -488,39 +484,39 @@ void LexAnalyser::InputFileProgram()
 
 	std::stringstream buffer_stringstream;
 	buffer_stringstream << file.rdbuf();
-	this->Buffer = buffer_stringstream.str();
+	this->buffer = buffer_stringstream.str();
 }
 
-void LexAnalyser::Scanner()
+void LexAnalyser::scanner()
 {
 	int first = 0;
 	int follow = 0;
 	int save = 0;
 
-	while (first < this->Buffer.size() - 1)
+	while (first < this->buffer.size() - 1)
 	{
 		follow = first;
-		while (follow < Buffer.size())
+		while (follow < buffer.size())
 		{
-			if (Match(Buffer.substr(first, follow - first + 1)))
+			if (match(buffer.substr(first, follow - first + 1)))
 				save = follow;
 
 			follow++;
 		}
 		follow = save;
 
-		string substring = Buffer.substr(first, follow - first + 1);
+		string substring = buffer.substr(first, follow - first + 1);
 		Token token(substring);
-		Tokens.push_back(token);
+		tokens.push_back(token);
 
 		first = follow + 1;
 
-		while ((Buffer[first] == ' ' || Buffer[first] == '\n' || Buffer[first] == '\t') && Buffer[first] != '\0')
+		while ((buffer[first] == ' ' || buffer[first] == '\n' || buffer[first] == '\t') && buffer[first] != '\0')
 			first++;
 	}
 }
 
-bool LexAnalyser::TakesPrecedence(char topStack, char ch)
+bool LexAnalyser::takesPrecedence(char topStack, char ch)
 {
 	if (topStack == '(')
 	{
@@ -552,13 +548,13 @@ bool LexAnalyser::TakesPrecedence(char topStack, char ch)
 	// اولويت کاراکتر بالاي پشته بيشتر است
 }
 
-void LexAnalyser::OutputFileTokens()
+void LexAnalyser::writeTokensToFile()
 {
 	fstream f;
 	f.open("IO/output/tokens.txt", ios::out);
-	for (int i = 0; i < Tokens.size(); i++)
+	for (int i = 0; i < tokens.size(); i++)
 	{
-		f << Tokens[i].value << "\t\t\t" << Tokens[i].type << "\n";
+		f << tokens[i].value << "\t\t\t" << tokens[i].type << "\n";
 	}
 	f.close();
 }

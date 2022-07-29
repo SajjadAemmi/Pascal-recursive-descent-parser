@@ -1,8 +1,5 @@
 #pragma once 
 
-#include <stdio.h>
-#include <string.h>
-#include <assert.h>
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -17,20 +14,18 @@
 #include "state.hpp"
 #include "tree_node.hpp"
 
-
 using namespace std;
 
 class Parser
 {
 public:
 	TreeNode* 			root;
-	int 				TokenIndex;
+	int 				token_index;
 	Token 				token;
-	string 				nexttoken;
-	bool 				GoodProgram;
-	string 				HTMLTree;
-	bool 				See_Epsilon;
-	vector<Token> 		Tokens;
+	bool 				good_program;
+	string 				html_tree;
+	bool 				see_epsilon;
+	vector<Token> 		tokens;
 
 	Parser();
 
@@ -71,10 +66,10 @@ public:
 	TreeNode* factor();
 
 	void Error();
-	Token NextToken();
-	void CreateTree();
+	Token nextToken();
+	void createTree();
 
-	void OutputFileHTMLTree();
-	void CreateHTMLTree(TreeNode*);
-	void PrintTree(TreeNode*);
+	void writeHtmlTreeToFile();
+	void createHtmlTree(TreeNode*);
+	void printTree(TreeNode*);
 };

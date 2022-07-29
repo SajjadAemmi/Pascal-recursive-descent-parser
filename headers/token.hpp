@@ -12,5 +12,5 @@ public:
 
 	Token();
 	Token(string value);
-	string TypeDetection(string s);
+	string typeDetection(string value);
 };

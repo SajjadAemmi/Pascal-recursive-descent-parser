@@ -1,10 +1,6 @@
 #pragma once
 
-#include <stdio.h>
-#include <string.h>
-#include <assert.h>
 #include <iostream>
-#include <fstream>
 #include <vector>
 #include <algorithm>
 #include <stack>
@@ -16,7 +12,6 @@
 
 using namespace std;
 
-
 class State
 {
 public:
@@ -24,22 +19,22 @@ public:
 
 	typedef vector<State*> Table;
 	typedef set<State*>::iterator StateIterator;
-	multimap<char, State*> Transition;
-	int StateID;
-	bool Accept;
+	multimap<char, State*> transition;
+	int state_id;
+	bool accept;
 	bool Marked;
 	int  GroupID;
 
-	State() : StateID(-1), Accept(false) {};
-	State(int nID) : StateID(nID), Accept(false), GroupID(0) {};
+	State() : state_id(-1), accept(false) {};
+	State(int nID) : state_id(nID), accept(false), GroupID(0) {};
 	State(std::set<State*> NFAState, int nID);
 	State(const State& other);
 	~State();
-	void AddTransition(char inputCh, State* pState);
-	void GetTransition(char inputCh, Table& States);
+	void addTransition(char inputCh, State* pState);
+	void getTransition(char inputCh, Table& States);
 	State& operator=(const State& other);
 	bool operator==(const State& other);
 	string getStringID();
-	set<State*>& GetNFAState();
+	set<State*>& getNFAState();
 
 };

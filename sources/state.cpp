@@ -1,16 +1,5 @@
-#include <stdio.h>
-#include <string.h>
-#include <assert.h>
 #include <iostream>
-#include <fstream>
-#include <vector>
-#include <algorithm>
-#include <stack>
 #include <set>
-#include <list>
-#include <string>
-#include <sstream>
-#include <map>
 #include "state.hpp"
 
 using namespace std;
@@ -18,15 +7,15 @@ using namespace std;
 State::State(std::set<State*> NFAState, int nID)
 {
     NFAStates = NFAState;
-    StateID = nID;
-    Accept = false;
+    state_id = nID;
+    accept = false;
     GroupID = 0;
     StateIterator iter;
     for (iter = NFAState.begin(); iter != NFAState.end(); ++iter)
     {
-        if ((*iter)->Accept)
+        if ((*iter)->accept)
         {
-            Accept = true;
+            accept = true;
         }
     }
 }
@@ -38,19 +27,19 @@ State::State(const State& other)
 State::~State()
 {
     NFAStates.clear();
-    Transition.clear();
+    transition.clear();
 }
 
-void State::AddTransition(char inputCh, State* pState)
+void State::addTransition(char inputCh, State* pState)
 {
-    Transition.insert(std::make_pair(inputCh, pState));
+    transition.insert(std::make_pair(inputCh, pState));
 }
 
-void State::GetTransition(char inputCh, Table& States)
+void State::getTransition(char inputCh, Table& States)
 {
     States.clear();
     multimap<char, State*>::iterator iter;
-    for (iter = Transition.lower_bound(inputCh); iter != Transition.upper_bound(inputCh); ++iter)
+    for (iter = transition.lower_bound(inputCh); iter != transition.upper_bound(inputCh); ++iter)
     {
         State* pState = iter->second;
         States.push_back(pState);
@@ -59,8 +48,8 @@ void State::GetTransition(char inputCh, Table& States)
 
 State& State::operator=(const State& other)
 {
-    this->Transition = other.Transition;
-    this->StateID = other.StateID;
+    this->transition = other.transition;
+    this->state_id = other.state_id;
     this->NFAStates = other.NFAStates;
     return *this;
 }
@@ -68,7 +57,7 @@ State& State::operator=(const State& other)
 bool State::operator==(const State& other)
 {
     if (NFAStates.empty())
-        return(StateID == other.StateID);
+        return(state_id == other.state_id);
     else
         return(NFAStates == other.NFAStates);
 }
@@ -76,11 +65,11 @@ bool State::operator==(const State& other)
 string State::getStringID()
 {
     stringstream out;
-    out << StateID;
+    out << state_id;
     return out.str();
 }
 
-set<State*>& State::GetNFAState()
+set<State*>& State::getNFAState()
 {
     return NFAStates;
 }

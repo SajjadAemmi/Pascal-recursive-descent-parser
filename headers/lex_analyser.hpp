@@ -1,8 +1,5 @@
 #pragma once
 
-#include <stdio.h>
-#include <string.h>
-#include <assert.h>
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -27,39 +24,37 @@ class LexAnalyser
 {
 public:
 
-	stack<Table>		ThompsonStack;
-	stack<char>         ExpressionStack;
-	set<char>           InputSet;
-	string              strText;
-	string              PostfixRE;
+	stack<Table>		thompson_stack;
+	set<char>           input_set;
+	string              postfix_re;
 	char                CurPreProcChar;
-	int                 NextStateID;
-	vector<string>		RegularExpressions;
-	string				InfixRE;
-	string				Buffer;
-	vector<Token> 		Tokens;
+	int                 next_state_id;
+	vector<string>		regular_expressions;
+	string				infix_re;
+	string				buffer;
+	vector<Token> 		tokens;
 
-	void InputFileInfixRE();
-	void PreProcessInfixRE();
-	string RemoveBracket(string);
-	void ConvertInfixREToPostfixRE();
-	bool TakesPrecedence(char, char);
-	void OutputFilePostfixRE();
-	bool ConvertPostfixREToNFA();
-	bool Match(string);
-	void CreateOneCharNFA(char);
-	bool PopTable(Table& NFATable);
+	void readInfixREFromFile();
+	void preProcessInfixRE();
+	string removeBracket(string);
+	void convertInfixREToPostfixRE();
+	bool takesPrecedence(char, char);
+	void writePostfixREToFile();
+	bool convertPostfixREToNFA();
+	bool match(string);
+	void createOneCharNFA(char);
+	bool popTable(Table& NFATable);
 
-	bool Concat();
-	bool Closure();
-	bool Or();
+	bool concat();
+	bool closure();
+	bool or();
 
-	bool IsOperator(char inputCh);
-	void EpsilonClosure(set<State*> startSet, set<State*>& result);
-	void Move(char chInput, set<State*> NFAState, set<State*>& Result);
-	void ConvertNFAtoDFA();
-	void OutputFileNFATable();
-	void InputFileProgram();
-	void Scanner();
-	void OutputFileTokens();
+	bool isOperator(char inputCh);
+	void epsilonClosure(set<State*> startSet, set<State*>& result);
+	void move(char chInput, set<State*> NFAState, set<State*>& Result);
+	void convertNFAToDFA();
+	void writeNFATableToFile();
+	void readProgramFromFile();
+	void scanner();
+	void writeTokensToFile();
 };
