@@ -1,5 +1,7 @@
 # Pascal recursive descent parser
 
+[![CMake](https://github.com/SajjadAemmi/Pascal-recursive-descent-parser/actions/workflows/cmake.yml/badge.svg)](https://github.com/SajjadAemmi/Pascal-recursive-descent-parser/actions/workflows/cmake.yml)
+
 This program consists of two main phases: 
 - Lexical Analyzer (find tokens)
 - Parser (check syntax and create parse tree)
